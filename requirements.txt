@@ -1,0 +1,8 @@
+requests>=2.31.0
+python-dotenv>=1.0.0
+Flask>=3.0.0
+openpyxl>=3.1       # importacao de planilhas .xlsx
+cryptography>=42.0  # criptografia da senha do UniFi guardada no banco
+pywebview>=5.0      # janela nativa do app desktop (.exe)
+# Build do .exe (apenas para gerar, nao e dependencia de runtime):
+#   pip install pyinstaller

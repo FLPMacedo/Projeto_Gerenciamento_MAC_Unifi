@@ -1,0 +1,57 @@
+=====================================================================
+ GESTAO MAC MOBILE - UniFi (v4)  -  Pacote de distribuicao
+=====================================================================
+
+NOVIDADES v4:
+ - Abre SILENT (sem janela preta) e fecha sozinho ao fechar o navegador.
+ - Auditoria com aba "UniFi (nativo)" (espelho do log, preservado p/ sempre).
+ - "N conectados" no topo (presenca). Coleta distribuida (1 por vez).
+ - secret.key fica na RAIZ (ao lado do exe). Logs na pasta logs\.
+
+CONTEUDO DESTE PACOTE
+  GestaoMAC.exe            -> o programa (silent; abre o navegador)
+  secret.key               -> chave de cripto (a MESMA em todos os PCs!)
+  .env.coletor.exemplo     -> modelo de config (pode usar em qualquer PC)
+  .env.usuario.exemplo     -> modelo de config (PC somente-visualizacao)
+  banco_inicial\           -> history.db + secret.key p/ "semear" a rede
+  docs\                    -> manuais (MANUAL_TECNICO .md/.pdf, etc.)
+  LEIA-ME.txt              -> este arquivo
+
+---------------------------------------------------------------------
+INSTALACAO MULTIUSUARIO (banco na rede) - passo a passo
+---------------------------------------------------------------------
+1) Crie uma pasta compartilhada na rede, ex.:
+      \\SERVIDOR\Compartilhada\GestaoMAC\data\
+   De permissao de LEITURA e ESCRITA aos usuarios.
+
+2) Copie para essa pasta os 2 arquivos de "banco_inicial\":
+      history.db   e   secret.key
+   (Semeia o banco com os dados atuais. Faca so uma vez.)
+
+3) EM CADA PC (coletor ou usuario):
+   - Copie GestaoMAC.exe para uma pasta local.
+   - Copie a MESMA secret.key (deste pacote) para a MESMA pasta do exe.
+     >>> A chave precisa ser identica em todos os PCs! <<<
+   - Renomeie um dos modelos para ".env" ao lado do exe e ajuste o DB_PATH
+     para o caminho real da pasta de rede:
+        DB_PATH=\\SERVIDOR\Compartilhada\GestaoMAC\data\history.db
+     - PC normal/coletor: use .env.coletor.exemplo (COLLECT_ON_OPEN=1)
+     - PC so visualizacao: use .env.usuario.exemplo (COLLECT_ON_OPEN=0)
+
+4) Abrir: duplo clique em GestaoMAC.exe -> abre o navegador (sem janela preta).
+   Login = sua conta do UniFi (so contas autorizadas entram).
+   Fechou o navegador -> o programa encerra sozinho.
+
+---------------------------------------------------------------------
+USO EM 1 SO PC (sem rede)
+---------------------------------------------------------------------
+- Copie GestaoMAC.exe + secret.key para uma pasta, e a pasta "banco_inicial"
+  renomeada para "data" (history.db dentro). Abra o exe. Sem .env.
+
+OBS:
+- A secret.key descriptografa a senha do UniFi guardada no banco -> tem que
+  ser a MESMA em todo PC. Guarde-a em local seguro.
+- Backup: dentro do app, menu "Backup".
+- Atualizacoes: substitua so o GestaoMAC.exe (banco/secret.key continuam).
+- Diagnostico: pasta logs\ (ao lado do exe).
+=====================================================================

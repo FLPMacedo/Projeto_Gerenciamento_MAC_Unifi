@@ -1,0 +1,30 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.log
+data/
+backups/
+build/
+dist/
+pacote/
+*.db
+server.err
+server.log
+
+# --- dados sensiveis / locais (NUNCA versionar) ---
+.env
+.env.local
+*.key
+secret.key
+dbpath.cfg
+# planilhas tem nomes/MACs (dados pessoais)
+*.xlsx
+*.spec
+icone_*.png
+# dados/identidade da empresa (NAO versionar - so locais)
+sites_map.json
+.claude/settings.local.json
+Logo *.png
+static/logo_brand.*
