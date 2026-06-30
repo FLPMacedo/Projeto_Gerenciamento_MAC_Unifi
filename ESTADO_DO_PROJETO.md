@@ -1,6 +1,24 @@
 # Estado do projeto — Handoff para a próxima sessão
 
-## v4 (ATUAL) — versionado no Git/GitHub (FLPMacedo/Projeto_Gerenciamento_MAC_Unifi)
+## v4 — correções finais (LER PRIMEIRO)
+- **Bug "abre e fecha em segundos" CORRIGIDO** (commit `1ef7e2d`): o `pagehide` do
+  navegador (dispara em qualquer navegação) chamava `/api/close` que zerava o
+  heartbeat → watchdog encerrava o app. Agora: `pagehide` removido; `api_close`
+  só encerra a sessão de presença (não derruba); heartbeat também na tela de
+  login; `/api/ping` e `/api/close` são públicos. Watchdog encerra só por
+  ausência REAL de ping (~90s).
+- **Login por usuário + secret.key LOCAL** (commit `e69e08b`): cada usuário usa a
+  PRÓPRIA conta UniFi. As credenciais ficam em **`creds.enc` LOCAL por máquina**
+  (`unifi/config.py`), criptografadas com **`secret.key` gerada na 1ª vez em cada
+  PC** (NÃO se distribui chave; NADA de senha no banco compartilhado). `app.py`:
+  `CREDS_PATH`; login/`config` gravam via `config.save`. `collect.py` lê de
+  `creds.enc`. Build NÃO copia mais `secret.key`. Marca via `BRAND` (.env).
+- **Repo SANITIZADO** (commit `ac7f0da`, histórico reescrito/force-push): sem
+  IPs/nomes de sites/identidade. Nomes de sites/unidades reais ficam em
+  `sites_map.json` (local, gitignored). Logo da empresa em `static/logo_brand.*`
+  (local) + `BRAND` no `.env`.
+
+## v4 (base) — versionado no Git/GitHub (FLPMacedo/Projeto_Gerenciamento_MAC_Unifi)
 - **Auditoria durável + espelho do log nativo da UniFi**: a cada coleta importa
   `POST /proxy/network/v2/api/site/<site>/system-log/admin-activity` para a tabela
   `unifi_audit` (dedup por uid), preservado mesmo após a UniFi purgar. Tela
@@ -8,10 +26,9 @@
 - **Auto-update distribuído com LEASE**: `db.claim_collection` garante que só UM
   terminal coleta por janela (= `COLLECT_BASE`60s + 30s×conectados); os demais só
   re-leem (auto-refresh de tela). Coleta ao abrir/fechar + botão manual (force=15s).
-- **secret.key na RAIZ** (`KEY_PATH`, ao lado do exe; migra a antiga de data/).
-  A MESMA chave deve ir para cada PC. DB na rede via `DB_PATH`/login.
-- **Presença**: `active_sessions` + heartbeat `/api/ping` (30s) → "👥 N conectados".
-  `/api/close` no fechar (pagehide/sendBeacon).
+- **Credenciais/secret LOCAIS por máquina** (ver "correções finais" acima):
+  `secret.key` + `creds.enc` gerados em cada PC; DB na rede via `DB_PATH`/login.
+- **Presença**: `active_sessions` + heartbeat `/api/ping` (25s) → "👥 N conectados".
 - **App SILENT** (build `--windowed`, sem console) + **watchdog** em `iniciar.py`
   (sem heartbeat ~90s → coleta final + `os._exit`). Logs em **`logs/`** (rotação
   diária, `TimedRotatingFileHandler`).

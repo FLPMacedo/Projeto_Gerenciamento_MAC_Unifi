@@ -2,18 +2,19 @@
  GESTAO MAC MOBILE - UniFi (v4)  -  Pacote de distribuicao
 =====================================================================
 
-NOVIDADES v4:
- - Abre SILENT (sem janela preta) e fecha sozinho ao fechar o navegador.
- - Auditoria com aba "UniFi (nativo)" (espelho do log, preservado p/ sempre).
- - "N conectados" no topo (presenca). Coleta distribuida (1 por vez).
- - secret.key fica na RAIZ (ao lado do exe). Logs na pasta logs\.
+COMO FUNCIONA (v4):
+ - Abre SILENT (sem janela preta) e abre o navegador sozinho.
+ - Fecha sozinho quando o navegador e fechado.
+ - Cada usuario faz login com a PROPRIA conta do UniFi.
+ - A chave de criptografia (secret.key) e as credenciais (creds.enc) sao
+   GERADAS LOCALMENTE em cada PC no primeiro login. NAO se distribui chave.
+ - Banco compartilhado na rede (multiusuario). Logs na pasta logs\.
 
 CONTEUDO DESTE PACOTE
-  GestaoMAC.exe            -> o programa (silent; abre o navegador)
-  secret.key               -> chave de cripto (a MESMA em todos os PCs!)
-  .env.coletor.exemplo     -> modelo de config (pode usar em qualquer PC)
-  .env.usuario.exemplo     -> modelo de config (PC somente-visualizacao)
-  banco_inicial\           -> history.db + secret.key p/ "semear" a rede
+  GestaoMAC.exe            -> o programa (silent)
+  .env.coletor.exemplo     -> modelo de config (PC que tambem coleta)
+  .env.usuario.exemplo     -> modelo de config (PC so visualizacao)
+  banco_inicial\           -> history.db para "semear" a pasta de rede
   docs\                    -> manuais (MANUAL_TECNICO .md/.pdf, etc.)
   LEIA-ME.txt              -> este arquivo
 
@@ -24,34 +25,34 @@ INSTALACAO MULTIUSUARIO (banco na rede) - passo a passo
       \\SERVIDOR\Compartilhada\GestaoMAC\data\
    De permissao de LEITURA e ESCRITA aos usuarios.
 
-2) Copie para essa pasta os 2 arquivos de "banco_inicial\":
-      history.db   e   secret.key
+2) Copie para essa pasta o arquivo de "banco_inicial\":
+      history.db
    (Semeia o banco com os dados atuais. Faca so uma vez.)
 
-3) EM CADA PC (coletor ou usuario):
+3) EM CADA PC:
    - Copie GestaoMAC.exe para uma pasta local.
-   - Copie a MESMA secret.key (deste pacote) para a MESMA pasta do exe.
-     >>> A chave precisa ser identica em todos os PCs! <<<
    - Renomeie um dos modelos para ".env" ao lado do exe e ajuste o DB_PATH
-     para o caminho real da pasta de rede:
+     para o caminho da pasta de rede:
         DB_PATH=\\SERVIDOR\Compartilhada\GestaoMAC\data\history.db
-     - PC normal/coletor: use .env.coletor.exemplo (COLLECT_ON_OPEN=1)
-     - PC so visualizacao: use .env.usuario.exemplo (COLLECT_ON_OPEN=0)
+     - PC normal/coletor: .env.coletor.exemplo (COLLECT_ON_OPEN=1)
+     - PC so visualizacao: .env.usuario.exemplo (COLLECT_ON_OPEN=0)
+     - (Opcional) BRAND=NomeDaEmpresa para a marca no rodape.
+   - NAO precisa copiar secret.key: o exe gera a dele no 1o login.
 
-4) Abrir: duplo clique em GestaoMAC.exe -> abre o navegador (sem janela preta).
-   Login = sua conta do UniFi (so contas autorizadas entram).
+4) Abrir: duplo clique em GestaoMAC.exe -> abre o navegador.
+   Login = a conta UniFi DO PROPRIO usuario daquele PC.
    Fechou o navegador -> o programa encerra sozinho.
 
 ---------------------------------------------------------------------
 USO EM 1 SO PC (sem rede)
 ---------------------------------------------------------------------
-- Copie GestaoMAC.exe + secret.key para uma pasta, e a pasta "banco_inicial"
-  renomeada para "data" (history.db dentro). Abra o exe. Sem .env.
+- Copie GestaoMAC.exe para uma pasta e abra. No 1o login ele cria a base
+  local (pasta data\) e a secret.key/creds.enc daquele PC.
 
 OBS:
-- A secret.key descriptografa a senha do UniFi guardada no banco -> tem que
-  ser a MESMA em todo PC. Guarde-a em local seguro.
+- Cada PC tem a propria secret.key e creds.enc (credenciais do usuario).
+  Guarde/backup do history.db (na rede). NAO compartilhe secret.key/creds.enc.
 - Backup: dentro do app, menu "Backup".
-- Atualizacoes: substitua so o GestaoMAC.exe (banco/secret.key continuam).
+- Atualizacoes: substitua so o GestaoMAC.exe.
 - Diagnostico: pasta logs\ (ao lado do exe).
 =====================================================================
