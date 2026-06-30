@@ -313,6 +313,8 @@ def api_ping():
 
 @app.route("/api/close", methods=["GET", "POST"])
 def api_close():
+    # Apenas encerra a sessao de presenca. NAO derruba o app -- o encerramento
+    # acontece por ausencia de heartbeat (o navegador parou de pingar de verdade).
     sid = session.get("sid")
     if sid:
         conn = db_conn()
@@ -320,12 +322,11 @@ def api_close():
             db.end_session(conn, sid)
         finally:
             conn.close()
-    _LAST_PING["t"] = 0   # sinaliza o watchdog para encerrar o app
     return {"ok": True}
 
 
 # --------------------------------------------------------------------- rotas
-PUBLIC_ENDPOINTS = {"login", "static"}
+PUBLIC_ENDPOINTS = {"login", "static", "api_ping", "api_close"}
 
 
 @app.before_request

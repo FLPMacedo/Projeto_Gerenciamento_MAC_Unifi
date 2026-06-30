@@ -45,5 +45,12 @@
       <p class="muted" style="font-size:11px;text-align:center;margin:6px 0 0">UniFi {{ app_version }}{% if brand %} · {{ brand }}{% endif %}</p>
     </div>
   </div>
+  <script>
+  // heartbeat na tela de login -> mantem o app vivo enquanto ninguem logou ainda
+  (function(){
+    function ping(){ fetch("{{ url_for('api_ping') }}",{method:"POST"}).catch(function(){}); }
+    ping(); setInterval(ping, 25000);
+  })();
+  </script>
 </body>
 </html>

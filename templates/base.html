@@ -59,11 +59,7 @@
         }).catch(function(){});
     }
     ping();
-    setInterval(ping, 30000);
-    // ao fechar a aba: avisa o servidor (encerra sessao / dispara fechamento)
-    window.addEventListener("pagehide", function(){
-      try{ navigator.sendBeacon("{{ url_for('api_close') }}"); }catch(e){}
-    });
+    setInterval(ping, 25000);
     // auto-atualizacao (so em telas marcadas) a cada 60s, sem atrapalhar quem digita
     if(window.AUTO_REFRESH){
       setInterval(function(){
