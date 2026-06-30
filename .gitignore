@@ -18,6 +18,8 @@ server.log
 .env.local
 *.key
 secret.key
+creds.enc
+*.enc
 dbpath.cfg
 # planilhas tem nomes/MACs (dados pessoais)
 *.xlsx

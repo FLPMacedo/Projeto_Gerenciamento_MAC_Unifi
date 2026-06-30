@@ -1,44 +1,57 @@
-"""Resolve as credenciais do UniFi a partir do banco (settings).
+"""Credenciais do UniFi guardadas LOCALMENTE por maquina (cada usuario usa a
+PROPRIA conta UniFi). Ficam num arquivo `creds.enc` ao lado do exe, criptografado
+com a `secret.key` LOCAL (gerada na 1a vez em cada maquina, nunca distribuida).
 
-A senha fica CRIPTOGRAFADA no banco (data/history.db), com a chave em
-data/secret.key -- nunca no codigo. Na primeira vez, se houver um .env com
-credenciais, elas sao SEMEADAS no banco (compatibilidade) e podem ser
-removidas do .env depois.
+Nada de credencial vai para o banco compartilhado. Na 1a vez, se houver um .env
+com credenciais, elas sao usadas como semente (util em dev).
 """
 from __future__ import annotations
 
+import json
 import os
 
-from . import db, secret
+from . import secret
 
 
 def _truthy(v: str) -> bool:
     return (v or "").strip().lower() in {"1", "true", "yes", "on", "sim"}
 
 
-def resolve(db_path: str | None, key_path: str) -> dict | None:
-    conn = db.connect(db_path)
-    try:
-        host = db.get_setting(conn, "unifi_host")
-        if not host and os.getenv("UNIFI_HOST"):
-            db.set_setting(conn, "unifi_host", os.environ["UNIFI_HOST"])
-            db.set_setting(conn, "unifi_site", os.getenv("UNIFI_SITE", "default"))
-            db.set_setting(conn, "unifi_username", os.getenv("UNIFI_USERNAME", ""))
-            db.set_setting(conn, "unifi_verify",
-                           "1" if _truthy(os.getenv("UNIFI_VERIFY_SSL", "")) else "0")
-            if os.getenv("UNIFI_PASSWORD"):
-                db.set_setting(conn, "unifi_password_enc",
-                               secret.encrypt(key_path, os.environ["UNIFI_PASSWORD"]))
-            host = os.environ["UNIFI_HOST"]
-        if not host:
-            return None
-        return {
-            "host": host,
-            "site": db.get_setting(conn, "unifi_site", "default"),
-            "username": db.get_setting(conn, "unifi_username", ""),
-            "password": secret.decrypt(key_path,
-                                       db.get_setting(conn, "unifi_password_enc", "")),
-            "verify": db.get_setting(conn, "unifi_verify", "0") == "1",
+def save(creds_file: str, key_path: str, cfg: dict) -> None:
+    """Grava as credenciais (criptografadas) localmente."""
+    blob = json.dumps({
+        "host": cfg.get("host", ""), "site": cfg.get("site", "default"),
+        "username": cfg.get("username", ""), "password": cfg.get("password", ""),
+        "verify": bool(cfg.get("verify")),
+    }, ensure_ascii=False)
+    with open(creds_file, "w", encoding="utf-8") as fh:
+        fh.write(secret.encrypt(key_path, blob))
+
+
+def resolve(creds_file: str, key_path: str) -> dict | None:
+    # 1) arquivo local de credenciais (por maquina)
+    if os.path.exists(creds_file):
+        try:
+            with open(creds_file, encoding="utf-8") as fh:
+                data = json.loads(secret.decrypt(key_path, fh.read()) or "{}")
+            if data.get("host"):
+                data.setdefault("site", "default")
+                data["verify"] = bool(data.get("verify"))
+                return data
+        except Exception:
+            pass
+    # 2) semente via .env (dev / primeiro arranque)
+    if os.getenv("UNIFI_HOST"):
+        cfg = {
+            "host": os.environ["UNIFI_HOST"],
+            "site": os.getenv("UNIFI_SITE", "default"),
+            "username": os.getenv("UNIFI_USERNAME", ""),
+            "password": os.getenv("UNIFI_PASSWORD", ""),
+            "verify": _truthy(os.getenv("UNIFI_VERIFY_SSL", "")),
         }
-    finally:
-        conn.close()
+        try:
+            save(creds_file, key_path, cfg)
+        except Exception:
+            pass
+        return cfg
+    return None

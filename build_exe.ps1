@@ -17,14 +17,9 @@ Remove-Item -Force "dist\GestaoMAC.exe" -ErrorAction SilentlyContinue
   --collect-all openpyxl `
   iniciar.py
 
-# secret.key fica na RAIZ do exe (mesma chave em todos os PCs). Copia 1x.
-if (-not (Test-Path "dist\secret.key") -and (Test-Path "secret.key")) {
-  Copy-Item "secret.key" "dist\secret.key" -Force
-}
-if (-not (Test-Path "dist\secret.key") -and (Test-Path "data\secret.key")) {
-  Copy-Item "data\secret.key" "dist\secret.key" -Force
-}
+# NAO distribuimos secret.key: cada maquina GERA a sua na 1a vez (cada usuario
+# usa a propria conta UniFi; as credenciais ficam em creds.enc local).
 
 Write-Host "`nOK -> dist\GestaoMAC.exe (SILENT, sem console; logs em logs\)"
-Write-Host "Multiusuario: aponte o DB_PATH (.env) para a pasta de rede e"
-Write-Host "distribua a MESMA secret.key para a raiz de cada PC."
+Write-Host "Multiusuario: aponte o DB_PATH (.env) para a pasta de rede compartilhada."
+Write-Host "Cada usuario faz login com a PROPRIA conta UniFi (creds locais por PC)."

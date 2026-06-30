@@ -90,12 +90,8 @@ DATA_DIR = os.path.dirname(DB_PATH)
 # deve ser distribuida para cada PC que usa o banco compartilhado. Migra a
 # chave antiga (que ficava na pasta do banco) se existir e a da raiz nao.
 KEY_PATH = os.getenv("KEY_PATH") or os.path.join(APP_DIR, "secret.key")
-_old_key = os.path.join(DATA_DIR, "secret.key")
-if not os.path.exists(KEY_PATH) and os.path.exists(_old_key):
-    try:
-        shutil.copyfile(_old_key, KEY_PATH)
-    except OSError:
-        pass
+# Credenciais do UniFi: arquivo LOCAL por maquina (cada usuario sua conta).
+CREDS_PATH = os.getenv("CREDS_PATH") or os.path.join(APP_DIR, "creds.enc")
 
 
 def set_db_folder(folder: str) -> None:
@@ -150,7 +146,7 @@ app.secret_key = _flask_secret()
 
 # ----------------------------------------------------- credenciais UniFi
 def get_unifi_config() -> dict | None:
-    return unifi_config_mod.resolve(DB_PATH, KEY_PATH)
+    return unifi_config_mod.resolve(CREDS_PATH, KEY_PATH)
 
 
 def unifi_configured() -> bool:
@@ -364,19 +360,12 @@ def login():
                                site=site, verify_ssl=verify)
             test.login()                 # valida no controller UniFi
             test.get_sites()             # garante que tem acesso de leitura
-            # Salva as credenciais SO na primeira vez (1o login configura o
-            # sistema). Depois disso, mantem -> so muda pela tela Configuracao.
-            if not unifi_configured():
-                conn = db_conn()
-                try:
-                    db.set_setting(conn, "unifi_host", host)
-                    db.set_setting(conn, "unifi_site", site)
-                    db.set_setting(conn, "unifi_username", user)
-                    db.set_setting(conn, "unifi_password_enc",
-                                   secret.encrypt(KEY_PATH, pw))
-                finally:
-                    conn.close()
-                invalidate_client()
+            # Cada usuario usa a PROPRIA conta UniFi: grava as credenciais
+            # LOCALMENTE nesta maquina (criptografadas com a secret.key local).
+            unifi_config_mod.save(CREDS_PATH, KEY_PATH, {
+                "host": host, "site": site, "username": user,
+                "password": pw, "verify": verify})
+            invalidate_client()
             session["user"] = user
             session["sid"] = uuid.uuid4().hex
             conn = db_conn()
@@ -409,28 +398,26 @@ def logout():
 
 @app.route("/config", methods=["GET", "POST"])
 def config():
-    conn = db_conn()
-    try:
-        if request.method == "POST":
-            db.set_setting(conn, "unifi_host", request.form.get("host", "").strip())
-            db.set_setting(conn, "unifi_site",
-                           request.form.get("site", "").strip() or "default")
-            db.set_setting(conn, "unifi_username", request.form.get("username", "").strip())
-            db.set_setting(conn, "unifi_verify",
-                           "1" if request.form.get("verify") == "on" else "0")
-            pw = request.form.get("password", "")
-            if pw:  # só troca a senha se algo foi digitado
-                db.set_setting(conn, "unifi_password_enc", secret.encrypt(KEY_PATH, pw))
-            invalidate_client()
-            try:
-                n = len(get_client().get_sites())
-                flash(f"Configuração salva e conectada: {n} site(s) encontrados.", "ok")
-            except Exception as exc:
-                flash(f"Salvo, mas não consegui conectar: {str(exc)[:140]}", "err")
-            return redirect(url_for("config"))
-        cfg = get_unifi_config() or {}
-    finally:
-        conn.close()
+    if request.method == "POST":
+        cur = get_unifi_config() or {}
+        pw = request.form.get("password", "")
+        cfg = {
+            "host": request.form.get("host", "").strip(),
+            "site": request.form.get("site", "").strip() or "default",
+            "username": request.form.get("username", "").strip(),
+            "verify": request.form.get("verify") == "on",
+            # mantem a senha atual se o campo vier vazio
+            "password": pw or cur.get("password", ""),
+        }
+        unifi_config_mod.save(CREDS_PATH, KEY_PATH, cfg)
+        invalidate_client()
+        try:
+            n = len(get_client().get_sites())
+            flash(f"Configuração salva e conectada: {n} site(s) encontrados.", "ok")
+        except Exception as exc:
+            flash(f"Salvo, mas não consegui conectar: {str(exc)[:140]}", "err")
+        return redirect(url_for("config"))
+    cfg = get_unifi_config() or {}
     return render_template("config.html", cfg=cfg, has_pw=bool(cfg.get("password")))
 
 

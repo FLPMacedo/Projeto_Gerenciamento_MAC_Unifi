@@ -25,11 +25,12 @@ load_dotenv()
 
 def main() -> None:
     t0 = time.time()
-    db_path = os.getenv("DB_PATH") or db.default_path()
-    key_path = os.path.join(os.path.dirname(db_path), "secret.key")
-    cfg = unifi_config_mod.resolve(db_path, key_path)
-    if not cfg or not cfg["username"] or not cfg["password"]:
-        sys.exit("UniFi nao configurado. Abra o app e configure em Configuracao (/config).")
+    base = os.path.dirname(os.path.abspath(__file__))
+    key_path = os.getenv("KEY_PATH") or os.path.join(base, "secret.key")
+    creds_path = os.getenv("CREDS_PATH") or os.path.join(base, "creds.enc")
+    cfg = unifi_config_mod.resolve(creds_path, key_path)
+    if not cfg or not cfg.get("username") or not cfg.get("password"):
+        sys.exit("UniFi nao configurado nesta maquina. Abra o app e faca login uma vez.")
     client = UnifiClient(
         host=cfg["host"], username=cfg["username"], password=cfg["password"],
         site=cfg["site"], verify_ssl=cfg["verify"],
