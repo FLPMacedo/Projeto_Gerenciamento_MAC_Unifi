@@ -1,0 +1,62 @@
+=====================================================================
+ GESTAO MAC MOBILE (UniFi) - GUIA DE USO RAPIDO
+=====================================================================
+
+ABRIR
+  - Duplo clique em GestaoMAC.exe  (abre o navegador sozinho).
+  - Faca LOGIN com a SUA conta do UniFi.
+  - Para fechar: feche a aba/janela do navegador (o programa encerra so).
+
+MENU (topo)
+  Sites .......... escolher um site (unidade) e ver a lista de MACs.
+  Visao geral .... panorama de todos os sites (graficos, faixas de dias).
+  Clientes ....... cadastro das pessoas/aparelhos (nome, setor, etc.).
+  + Adicionar .... adicionar 1 MAC na rede mobile de um site.
+  - Remover ...... remover 1 MAC (VIP nao pode ser removido aqui).
+  Auditoria ...... historico do que mudou (abas: Sistema e UniFi nativo).
+  Backup ......... baixar o banco (.db) ou a planilha (.csv).
+  Atualizar status . forca uma coleta agora (atualiza os dados).
+  Menu direito ... engrenagem = Configuracao | Sair.
+  "N conectados" . quantas pessoas estao usando agora.
+
+TAREFAS COMUNS
+  Adicionar um MAC:
+    + Adicionar -> escolha o site -> digite o MAC (os ":" entram sozinhos)
+    -> (opcional) nome -> Adicionar.  So permite se houver vaga (< 512).
+
+  Remover um MAC:
+    - Remover -> escolha o site -> digite o MAC -> marque a confirmacao
+    -> Remover.  MAC marcado como VIP nao pode ser removido (desmarque antes).
+
+  Trocar de aparelho (mesma pessoa, MAC novo):
+    Clientes -> clique no cliente -> secao "Troca de aparelho" ->
+    digite o Novo MAC -> (opcional) "Aplicar na rede" + site -> Registrar troca.
+    O cadastro (nome, setor, VIP...) e transferido e fica no log como "troca".
+
+  Cadastrar/editar dados de uma pessoa:
+    Clientes -> clique no cliente (ou no MAC) -> preencha nome, setor,
+    Unidade (checklist), funcao, lider, gestor que autorizou, chamado ->
+    marque "Termo" (assinado) e/ou "VIP" (diretoria) -> Salvar cadastro.
+
+  Achar quem falta termo / VIPs / por unidade:
+    Clientes -> filtros no topo: "Sem termo", "VIP", ou escolha a Unidade.
+
+  Ver quem mexeu (auditoria):
+    Auditoria -> aba "UniFi (nativo)" mostra quem fez o que direto na UniFi;
+    aba "Sistema" mostra remocoes/retornos/bloqueios detectados por nos.
+
+  Backup:
+    Backup -> "Baixar banco (.db)" (recomendado) ou "Baixar inventario (.csv)".
+
+REGRAS IMPORTANTES
+  - Um MAC so vira "disponivel" (liberavel) apos +35 dias sem conectar
+    (protege quem esta de ferias). Comece removendo pelos mais antigos
+    (filtros >50d / >100d no painel do site).
+  - MAC VIP/Diretoria: se sair da rede, aparece um ALERTA vermelho no topo.
+  - Acoes sao unitarias (1 MAC por vez), com confirmacao e registro de quem fez.
+
+PROBLEMAS
+  - Nao conecta / login recusado: confira usuario/senha do UniFi e, em
+    "Avancado", o endereco (host) do controller.
+  - Diagnostico: pasta "logs" (ao lado do GestaoMAC.exe).
+=====================================================================
