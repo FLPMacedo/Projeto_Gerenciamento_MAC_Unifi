@@ -68,6 +68,19 @@
         location.reload();
       }, 60000);
     }
+    // mascara de MAC: completa os ":" a cada 2 digitos enquanto digita
+    function fmtMac(v){
+      var hex=(v||"").replace(/[^0-9a-fA-F]/g,"").slice(0,12);
+      return (hex.match(/.{1,2}/g)||[]).join(":");
+    }
+    document.addEventListener("input", function(e){
+      var t=e.target;
+      if(t && t.tagName==="INPUT" && (t.name==="mac" || t.name==="new_mac")){
+        var atEnd = t.selectionStart===t.value.length;
+        t.value = fmtMac(t.value);
+        if(atEnd){ try{ t.setSelectionRange(t.value.length, t.value.length); }catch(_){} }
+      }
+    });
   })();
   </script>
 </body>
